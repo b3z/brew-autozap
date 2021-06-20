@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-
+import wget
 
 def generateZap(cask):
     if not cask:
@@ -20,26 +20,45 @@ def generateZap(cask):
     else:
         return zap
 
-# Testing - all passed as expected.
-#print(generateZap("ddnet"))        # There is a zap to be found.
-#print(generateZap("mactex"))       # No setting to find (at least for me manually. Same result here).
-#print(generateZap("jwgböewlbg"))   # Some nonsense input.
-#print(generateZap(""))             # Empty string. 
-#print(generateZap(None))           # None arg.
+def fetchCask(cask):
+    print(f'Downloading {cask}.rb')
+    url=f'https://raw.githubusercontent.com/Homebrew/homebrew-cask/master/Casks/{cask}.rb'
+    wget.download(url, out="Casks")
 
+def fixStyle(cask):
+    fixProcess = Popen(["brew", "style", "--fix", f'zappedCasks/{cask}.rb'], stdout=PIPE)
+    stdout = fixProcess.communicate()
+    print(stdout.decode("UTF-8"))
+
+
+# ----- Main -------
 
 casks = open('casks-to-zap.txt', 'r')
-zaps  = open('zaps.txt', 'w')
  
 for cask in casks:
-    print(f'cask.strip()\n')
-    zap = generateZap(cask.strip())
+    cask = cask.strip()
+    print(f'Current cask: {cask}\n')
+    zap = generateZap(cask)
     if zap:
-        zaps.writelines(f'{cask}{zap}\n\n')
+        fetchCask(cask)
+        
+        with open(f'Casks/{cask}.rb', 'r') as caskRead:
+            caskContent = caskRead.readlines()
+        
+        print(caskContent)
+        
+        caskContent[len(caskContent)-1] = f'{zap}\nend'
+    
+        caskWrite = open(f'zappedCasks/{cask}.rb', 'w')
+        caskWrite.writelines(caskContent)
+        caskWrite.close()
+
+
+
+
     else:
-        zaps.writelines(f'No zap for {cask}.\n\n')
+        print(f'No zap for {cask}.\n')
 
 casks.close()
-zaps.close()
 
 print("Done.")
