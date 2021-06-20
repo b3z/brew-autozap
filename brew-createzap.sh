@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# brew-createzap
+#
+# A `brew` external command that generates zap stanza.
+# Example usage:
+#
+#     brew createzap appname
+#
+# from https://github.com/nrlquaker/homebrew-createzap
+
+
+readonly TMP_FILE="/tmp/brewcask-createzap"
+readonly TRASH_PATHS=(
+  "$HOME/Desktop"
+  "$HOME/Documents"
+  "$HOME/Library"
+  "$HOME/Library/Application Scripts"
+  "$HOME/Library/Application Support"
+  "$HOME/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments"
+  "$HOME/Library/Caches"
+  "$HOME/Library/Caches/com.apple.helpd/Generated"
+  "$HOME/Library/Caches/com.apple.helpd/SDMHelpData/Other/English/HelpSDMIndexFile"
+  "$HOME/Library/Containers"
+  "$HOME/Library/Cookies"
+  "$HOME/Library/Group Containers"
+  "$HOME/Library/Internet Plug-Ins"
+  "$HOME/Library/LaunchAgents"
+  "$HOME/Library/Logs"
+  "$HOME/Library/PreferencePanes"
+  "$HOME/Library/Preferences"
+  "$HOME/Library/Saved Application State"
+  "$HOME/Library/WebKit"
+  "$HOME/Music"
+  "/Library/Application Support"
+  "/Library/LaunchDaemons"
+  "/Library/PreferencePanes"
+  "/Library/Preferences"
+  "/Library/PrivilegedHelperTools"
+  "/Library/Screen Savers"
+  "/Library/ScriptingAdditions"
+  "/Library/Services"
+  "/Users/Shared"
+  "/etc/newsyslog.d"
+)
+
+main() {
+  check_args "$@"
+  create_tmp
+  find_in_paths "$1"
+  find_in_home_folder "$1"
+  generate "$1"
+  delete_tmp
+}
+
+check_args() {
+  if [ $# != 1 ]
+  then
+    cat <<EOS
+Usage: brew createzap appname
+Given an Application name (full or partial), find all
+preferences items associated with that app and creates
+zap stanza, which you can copy to new formula created
+by 'brew create --cask my-new-cask'
+Note that you will likely need to have opened the app
+at least once for any preference items to be present.
+EOS
+    exit 1
+  fi
+}
+
+create_tmp() {
+  touch $TMP_FILE
+}
+
+find_in_paths() {
+  for dir in "${TRASH_PATHS[@]}"; do
+    if [[ -d "$dir" ]]; then
+      cd "$dir"
+      for path in "$PWD"/*; do grep -iq "$1" <<< "$path" && echo "$path" >> $TMP_FILE; done
+    fi
+  done
+}
+
+find_in_home_folder() {
+  find ~ -maxdepth 1 | grep -i "$1" >> $TMP_FILE
+}
+
+generate() {
+  trash_lines=$(cat $TMP_FILE | wc -l)
+  if [ $trash_lines == 0 ]; then
+    echo "No $1 settings found."
+  elif [ $trash_lines == 1 ]; then
+    path=$(cat $TMP_FILE)
+    echo "zap trash: \"${path/$HOME/~}\""
+  else
+    echo "zap trash: ["
+    cat $TMP_FILE | while read path
+    do
+       echo "  \"${path/$HOME/~}\","
+    done
+    echo ']'
+  fi
+}
+
+delete_tmp() {
+  rm $TMP_FILE
+}
+
+main "$@"
