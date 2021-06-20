@@ -1,6 +1,7 @@
 from subprocess import Popen, PIPE
 import wget
 
+# generated a zap using brew-createzap.sh
 def generateZap(cask):
     if not cask:
         print("Err: No cask")
@@ -20,14 +21,16 @@ def generateZap(cask):
     else:
         return zap
 
+# downloads cask from github master
 def fetchCask(cask):
     print(f'Downloading {cask}.rb')
-    url=f'https://raw.githubusercontent.com/Homebrew/homebrew-cask/master/Casks/{cask}.rb'
+    url = f'https://raw.githubusercontent.com/Homebrew/homebrew-cask/master/Casks/{cask}.rb'
     wget.download(url, out="Casks")
 
+# applies brew style --fix cask (to mainly fix the indents)
 def fixStyle(cask):
-    fixProcess = Popen(["brew", "style", "--fix", f'zappedCasks/{cask}.rb'], stdout=PIPE)
-    stdout = fixProcess.communicate()
+    fixProcess = Popen(["brew", "style", "--fix", f'zappedCasks/{cask}.rb'], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = fixProcess.communicate()
     print(stdout.decode("UTF-8"))
 
 
@@ -39,26 +42,25 @@ for cask in casks:
     cask = cask.strip()
     print(f'Current cask: {cask}\n')
     zap = generateZap(cask)
-    if zap:
+
+    # if there is a zap go ahead and modify the cask
+    if zap: 
         fetchCask(cask)
         
         with open(f'Casks/{cask}.rb', 'r') as caskRead:
             caskContent = caskRead.readlines()
-        
-        print(caskContent)
         
         caskContent[len(caskContent)-1] = f'{zap}\nend'
     
         caskWrite = open(f'zappedCasks/{cask}.rb', 'w')
         caskWrite.writelines(caskContent)
         caskWrite.close()
-
-
-
+        
+        fixStyle(cask)
 
     else:
         print(f'No zap for {cask}.\n')
 
 casks.close()
 
-print("Done.")
+print("\nDone")
