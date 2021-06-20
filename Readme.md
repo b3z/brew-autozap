@@ -11,3 +11,10 @@
 ### Python3 requirements
 
 * wget
+
+
+### Run
+
+Configure `casks-to-zap.txt`
+
+`python3 zapAll.py`
