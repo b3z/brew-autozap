@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  #push:
+  #  branches: [ master ]
+  #pull_request:
+  #  branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  zap:
+    runs-on: ubuntu-latest
+
+    steps:
+      #- name: Install Cask
+      #  uses: artemnovichkov/action-homebrew@0.1.0
+        
+      - name: Read caskslist
+        id: package
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./casksToZap
+      - name: Echo casks
+        run: echo "${{ steps.package.outputs.content }}"
