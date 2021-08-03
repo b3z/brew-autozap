@@ -14,11 +14,14 @@ jobs:
     steps:
       #- name: Install Cask
       #  uses: artemnovichkov/action-homebrew@0.1.0
-        
-      - name: Read caskslist
-        id: package
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: ./casksToZap
-      - name: Echo casks
-        run: echo "${{ steps.package.outputs.content }}"
+       - name: checkout repo content
+         uses: actions/checkout@v2 # checkout the repository content to github runner.
+       - name: setup python
+         uses: actions/setup-python@v2
+         with:
+            python-version: 3.8 #install the python needed
+       - name: Zap Casks
+         run: |
+          python3 zapAll.py
+        #- name: export index
+            
