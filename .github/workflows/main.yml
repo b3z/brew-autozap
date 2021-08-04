@@ -12,19 +12,24 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      #- name: Install Cask
-      #  uses: artemnovichkov/action-homebrew@0.1.0
-       - name: checkout repo content
-         uses: actions/checkout@v2 # checkout the repository content to github runner.
-       - name: setup python
-         uses: actions/setup-python@v2
-         with:
-            python-version: 3.8 #install the python needed
+       - name: Checkout repo content
+         uses: actions/checkout@v2
        - name: Install dependencies
          run: |
           pip install wget
        - name: Zap Casks
          run: |
           python3 zapAll.py
+       - name: Commit files 
+         run: |
+          git config --local user.name "b3z"
+          git config --local user.email "b3z@zeppel.eu"
+          git add ./docs
+          git commit -m "Generate zaps"
+       - name: Push changes # push the output folder to your repo
+         uses: ad-m/github-push-action@master
+         with:
+          github_token: ${{ secrets.AUTOZAP_TOKEN }}
+          force: true
         #- name: export index
             
