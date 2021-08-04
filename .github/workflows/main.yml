@@ -20,6 +20,9 @@ jobs:
          uses: actions/setup-python@v2
          with:
             python-version: 3.8 #install the python needed
+       - name: Install dependencies
+         run: |
+          pip install wget
        - name: Zap Casks
          run: |
           python3 zapAll.py
