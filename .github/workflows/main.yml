@@ -24,7 +24,7 @@ jobs:
          run: |
           git config --local user.name "b3z"
           git config --local user.email "b3z@zeppel.eu"
-          git add .zappedCasks
+          git add zappedCasks
           git commit -m "Generate zaps"
        - name: Push changes # push the output folder to your repo
          uses: ad-m/github-push-action@master
